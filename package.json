@@ -1,0 +1,21 @@
+{
+  "name": "unmei-no-hado-jinja",
+  "version": "0.1.0",
+  "description": "運命の波動神社 - TikTok LIVE 向け視聴者参加型オーバーレイ（OBSブラウザソース）",
+  "private": true,
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "test": "node --test test/*.test.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "license": "UNLICENSED",
+  "dependencies": {
+    "dotenv": "^16.6.1",
+    "express": "^4.22.3",
+    "socket.io": "^4.8.4"
+  }
+}

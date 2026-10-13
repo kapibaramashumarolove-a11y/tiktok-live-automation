@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>運命の波動神社 - オーバーレイ</title>
+  <link rel="stylesheet" href="css/overlay.css">
+</head>
+<body>
+  <div id="viewport">
+    <div id="stage" class="theme-idle">
+      <div class="bg bg--base"></div>
+      <div class="bg bg--theme" id="bgA"></div>
+      <div class="bg bg--theme" id="bgB"></div>
+      <div class="moon"></div>
+
+      <header class="title">
+        <div class="title__sub">視聴者参加型エンターテインメント</div>
+        <h1 class="title__main">運命の波動神社</h1>
+      </header>
+
+      <div class="aura" id="aura"></div>
+
+      <svg class="torii" viewBox="0 0 800 760" aria-hidden="true">
+        <defs>
+          <linearGradient id="toriiRed" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#e2412f"/><stop offset="1" stop-color="#9b1d14"/>
+          </linearGradient>
+        </defs>
+        <path d="M20 70 Q400 10 780 70 L770 110 Q400 60 30 110 Z" fill="#2a1a14"/>
+        <rect x="70" y="105" width="660" height="38" rx="6" fill="url(#toriiRed)"/>
+        <rect x="90" y="200" width="620" height="30" rx="5" fill="url(#toriiRed)"/>
+        <rect x="370" y="140" width="60" height="62" fill="#2a1a14"/>
+        <rect x="378" y="148" width="44" height="46" fill="#d9b25a"/>
+        <rect x="150" y="135" width="52" height="625" rx="8" fill="url(#toriiRed)"/>
+        <rect x="598" y="135" width="52" height="625" rx="8" fill="url(#toriiRed)"/>
+        <rect x="140" y="720" width="72" height="40" rx="6" fill="#2a1a14"/>
+        <rect x="588" y="720" width="72" height="40" rx="6" fill="#2a1a14"/>
+      </svg>
+
+      <div class="mirror" id="mirror"><div class="mirror__inner"></div></div>
+
+      <div class="lantern lantern--l"><div class="lantern__light"></div></div>
+      <div class="lantern lantern--r"><div class="lantern__light"></div></div>
+      <div class="path"></div>
+
+      <canvas id="fx"></canvas>
+
+      <section class="card" id="card" aria-live="polite">
+        <div class="card__head">
+          <span class="card__color" id="cardColor"></span>
+          <span class="card__category" id="cardCategory"></span>
+        </div>
+        <p class="card__text" id="cardText"></p>
+        <div class="card__source" id="cardSource" hidden></div>
+      </section>
+
+      <div class="idle-text" id="idleText">波動を感じながら、ゆっくりしていってください</div>
+
+      <div class="mode-badge" id="modeBadge" hidden>シミュレーションモード（実イベント未接続）</div>
+
+      <!-- 免責注記：常時表示（非表示にする設定は用意していません） -->
+      <p class="disclaimer" id="disclaimer">※本コンテンツは娯楽を目的としたエンターテインメントです。結果は科学的根拠や将来を保証するものではありません。</p>
+    </div>
+  </div>
+
+  <aside class="test-panel" id="testPanel" hidden>
+    <h2>テストUI <small>（シミュレーション）</small></h2>
+    <p class="test-panel__note">ここで発生させた演出はテストです。実際のTikTokのイベントではありません。</p>
+    <div class="test-panel__conn" id="conn">接続中…</div>
+    <label>メッセージ分類
+      <select id="testCategory"><option value="">ランダム</option></select>
+    </label>
+    <div class="test-panel__colors" id="testColors"></div>
+    <button type="button" id="testRandom" class="test-panel__wide">ランダムな色でテスト演出</button>
+    <div class="test-panel__stats" id="stats"></div>
+    <ol class="test-panel__log" id="testLog"></ol>
+  </aside>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="js/themes.js"></script>
+  <script src="js/effects.js"></script>
+  <script src="js/overlay.js"></script>
+</body>
+</html>

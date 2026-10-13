@@ -1,0 +1,298 @@
+/* 運命の波動神社 オーバーレイ
+ * 基準解像度 1080x1920（9:16）。#stage を JS で等倍縮小し 720x1280 等にも対応。
+ */
+:root {
+  --c1: #ffd98a;
+  --c2: #fff3d6;
+  --c3: #c9973a;
+  --glow: #ffcf70;
+  --font-serif: "Hiragino Mincho ProN", "Yu Mincho", "YuMincho", "Noto Serif JP", "IPAMincho", serif;
+  --font-sans: "Hiragino Sans", "Yu Gothic", "Noto Sans JP", "IPAGothic", sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #000;
+  font-family: var(--font-sans);
+}
+
+body.transparent { background: transparent; }
+
+#viewport { position: fixed; inset: 0; overflow: hidden; }
+
+#stage {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 1080px;
+  height: 1920px;
+  transform-origin: 0 0;
+  overflow: hidden;
+  color: #fff;
+}
+
+/* ---------- 背景 ---------- */
+.bg { position: absolute; inset: 0; }
+.bg--base {
+  background:
+    radial-gradient(ellipse at 50% 0%, #2a2350 0%, rgba(0,0,0,0) 60%),
+    linear-gradient(#0b0a1e 0%, #15112b 55%, #1d1420 100%);
+}
+.bg--theme { opacity: 0; transition: opacity 1.6s ease; }
+.bg--theme.is-on { opacity: 1; }
+body.transparent .bg, body.transparent .moon, body.transparent .path { display: none; }
+
+.moon {
+  position: absolute; top: 300px; right: 60px; width: 100px; height: 100px; border-radius: 50%;
+  background: radial-gradient(circle at 40% 40%, #fffbe8, #f1e2a8 60%, #c9b26a);
+  box-shadow: 0 0 60px 20px rgba(255, 240, 190, 0.25);
+  opacity: 0.85;
+}
+
+/* ---------- タイトル ---------- */
+.title { position: absolute; top: 90px; left: 0; right: 0; text-align: center; }
+.title__sub {
+  font-size: 30px; letter-spacing: 0.3em; color: rgba(255,255,255,0.75);
+}
+.title__main {
+  margin: 10px 0 0; font-family: var(--font-serif); font-weight: 700; font-size: 104px; letter-spacing: 0.12em;
+  color: #fff8e6;
+  text-shadow: 0 0 18px var(--glow), 0 0 42px var(--glow);
+  transition: text-shadow 1.2s ease;
+}
+
+/* ---------- 鳥居・鏡・灯籠 ---------- */
+.torii { position: absolute; left: 140px; top: 420px; width: 800px; height: 760px; filter: drop-shadow(0 10px 30px rgba(0,0,0,0.6)); }
+
+.mirror {
+  position: absolute; left: 400px; top: 740px; width: 280px; height: 280px; border-radius: 50%;
+  background: radial-gradient(circle at 40% 35%, #ffffff 0%, var(--c2) 25%, var(--c1) 60%, var(--c3) 100%);
+  box-shadow: 0 0 40px 10px var(--glow), inset 0 0 30px rgba(0,0,0,0.35);
+  border: 10px solid #caa24c;
+  transition: background 1.2s ease, box-shadow 1.2s ease;
+  animation: mirror-breathe 5s ease-in-out infinite;
+}
+.mirror__inner {
+  position: absolute; inset: 30px; border-radius: 50%;
+  border: 3px solid rgba(255,255,255,0.45);
+}
+@keyframes mirror-breathe { 50% { transform: scale(1.035); } }
+
+.lantern {
+  position: absolute; top: 1180px; width: 90px; height: 170px;
+  background: linear-gradient(#3a2a20, #24170f); border-radius: 12px 12px 4px 4px;
+}
+.lantern--l { left: 40px; }
+.lantern--r { right: 40px; }
+.lantern__light {
+  position: absolute; left: 15px; right: 15px; top: 30px; height: 70px; border-radius: 6px;
+  background: var(--c1); box-shadow: 0 0 40px 12px var(--glow);
+  animation: lantern-flicker 3.2s ease-in-out infinite;
+  transition: background 1.2s ease, box-shadow 1.2s ease;
+}
+@keyframes lantern-flicker { 0%,100% { opacity: 0.85; } 40% { opacity: 1; } 70% { opacity: 0.75; } }
+
+.path {
+  position: absolute; left: 340px; right: 340px; top: 1180px; height: 740px;
+  background: linear-gradient(rgba(120,110,100,0.25), rgba(60,50,45,0.6));
+  clip-path: polygon(30% 0, 70% 0, 100% 100%, 0 100%);
+}
+
+#fx { position: absolute; inset: 0; width: 1080px; height: 1920px; pointer-events: none; }
+
+/* ---------- オーラ（色ごとに個別アニメーション） ---------- */
+.aura {
+  position: absolute; left: 140px; top: 480px; width: 800px; height: 800px; border-radius: 50%;
+  opacity: 0; transition: opacity 1s ease; pointer-events: none;
+}
+.aura.is-on { opacity: 1; }
+.aura--gold {
+  background: repeating-conic-gradient(from 0deg, rgba(255,215,106,0.35) 0deg 6deg, rgba(255,215,106,0) 6deg 18deg);
+  mask-image: radial-gradient(circle, #000 20%, transparent 70%);
+  -webkit-mask-image: radial-gradient(circle, #000 20%, transparent 70%);
+  animation: aura-rotate 24s linear infinite;
+}
+.aura--purple {
+  background: radial-gradient(circle, rgba(169,112,255,0.55) 0%, rgba(123,63,228,0.2) 40%, transparent 70%);
+  animation: aura-pulse 4s ease-in-out infinite;
+}
+.aura--green {
+  background: radial-gradient(circle, rgba(111,220,140,0.45) 0%, rgba(47,158,90,0.15) 45%, transparent 70%);
+  animation: aura-breathe 6s ease-in-out infinite;
+}
+.aura--pink {
+  background: radial-gradient(circle, rgba(255,126,182,0.55) 0%, rgba(232,80,143,0.18) 45%, transparent 70%);
+  animation: aura-heartbeat 1.6s ease-in-out infinite;
+}
+.aura--blue {
+  background: radial-gradient(circle, transparent 30%, rgba(90,174,255,0.35) 42%, transparent 55%),
+              radial-gradient(circle, rgba(90,174,255,0.25) 0%, transparent 65%);
+  animation: aura-shimmer 3s ease-in-out infinite;
+}
+.aura--red {
+  background: radial-gradient(ellipse at 50% 60%, rgba(255,74,46,0.6) 0%, rgba(196,22,28,0.25) 40%, transparent 70%);
+  animation: aura-flame 0.9s ease-in-out infinite alternate;
+}
+.aura--white {
+  background: radial-gradient(circle, rgba(255,255,255,0.75) 0%, rgba(255,255,255,0.15) 40%, transparent 70%);
+  animation: aura-fade 5s ease-out infinite;
+}
+.aura--aqua {
+  background: radial-gradient(circle, rgba(79,230,226,0.5) 0%, rgba(22,179,184,0.15) 45%, transparent 70%);
+  animation: aura-morph 7s ease-in-out infinite;
+}
+.aura--orange {
+  background: radial-gradient(circle, rgba(255,154,46,0.45) 0%, transparent 60%);
+  border: 8px dashed rgba(255,176,87,0.55);
+  animation: aura-rotate 14s linear infinite;
+}
+.aura--rainbow {
+  background: conic-gradient(#ff6b6b, #ffd93d, #6bcb77, #4d96ff, #b06bff, #ff6b6b);
+  mask-image: radial-gradient(circle, transparent 28%, #000 38%, transparent 68%);
+  -webkit-mask-image: radial-gradient(circle, transparent 28%, #000 38%, transparent 68%);
+  animation: aura-rotate 10s linear infinite;
+  filter: saturate(1.2);
+}
+@keyframes aura-rotate { to { transform: rotate(360deg); } }
+@keyframes aura-pulse { 50% { transform: scale(1.12); opacity: 0.7; } }
+@keyframes aura-breathe { 50% { transform: scale(1.06); } }
+@keyframes aura-heartbeat { 0%,100% { transform: scale(1); } 15% { transform: scale(1.08); } 30% { transform: scale(1); } 45% { transform: scale(1.05); } }
+@keyframes aura-shimmer { 50% { opacity: 0.6; transform: scale(1.03); } }
+@keyframes aura-flame { from { transform: scale(1, 1); } to { transform: scale(1.05, 1.12) translateY(-12px); } }
+@keyframes aura-fade { 0% { transform: scale(0.8); opacity: 1; } 100% { transform: scale(1.2); opacity: 0.4; } }
+@keyframes aura-morph { 0%,100% { border-radius: 50%; } 33% { border-radius: 46% 54% 52% 48%; transform: rotate(8deg); } 66% { border-radius: 54% 46% 48% 52%; transform: rotate(-8deg); } }
+
+/* ---------- メッセージカード ---------- */
+.card {
+  position: absolute; left: 90px; right: 90px; top: 1230px; min-height: 300px;
+  padding: 36px 48px 40px;
+  background: linear-gradient(rgba(10,8,20,0.78), rgba(10,8,20,0.62));
+  border: 3px solid var(--c1);
+  border-radius: 28px;
+  box-shadow: 0 0 40px rgba(0,0,0,0.5), 0 0 24px var(--glow);
+  opacity: 0; transform: translateY(40px) scale(0.97);
+  transition: opacity 0.6s ease, transform 0.6s ease, border-color 1s ease, box-shadow 1s ease;
+}
+.card.is-on { opacity: 1; transform: none; }
+.card__head { display: flex; gap: 16px; align-items: center; margin-bottom: 18px; }
+.card__color {
+  padding: 6px 22px; border-radius: 999px; font-size: 32px; font-weight: 700;
+  background: var(--c1); color: #1a1208;
+}
+.card__category { font-size: 30px; color: var(--c2); letter-spacing: 0.08em; }
+.card__text {
+  margin: 0; font-family: var(--font-serif); font-size: 54px; line-height: 1.5; font-weight: 700;
+  color: #fff; text-shadow: 0 0 14px var(--glow);
+  word-break: break-word;
+}
+.card__source {
+  margin-top: 20px; display: inline-block; padding: 6px 16px; border-radius: 8px;
+  font-size: 26px; font-weight: 700; color: #1a1a1a; background: #ffe066;
+}
+
+.idle-text {
+  position: absolute; left: 0; right: 0; top: 1330px; text-align: center;
+  font-family: var(--font-serif); font-size: 40px; color: rgba(255,255,255,0.8);
+  text-shadow: 0 0 12px rgba(0,0,0,0.8);
+  transition: opacity 0.6s ease;
+}
+.idle-text.is-hidden { opacity: 0; }
+
+/* ---------- 文字アニメーション（色ごと） ---------- */
+.ch { display: inline-block; white-space: pre; }
+
+.text-anim--shine {
+  background: linear-gradient(100deg, #fff2b8 0%, #ffd76a 35%, #ffffff 50%, #ffd76a 65%, #d4a017 100%);
+  background-size: 250% 100%;
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  animation: shine 3s linear infinite;
+}
+@keyframes shine { from { background-position: 100% 0; } to { background-position: -150% 0; } }
+
+.text-anim--blur { animation: blur-in 1.8s ease-out both; }
+@keyframes blur-in { from { filter: blur(14px); opacity: 0; letter-spacing: 0.3em; } to { filter: none; opacity: 1; letter-spacing: 0; } }
+
+.text-anim--float { animation: float-in 1.4s ease-out both, float-bob 5s ease-in-out 1.4s infinite; }
+@keyframes float-in { from { transform: translateY(30px); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes float-bob { 50% { transform: translateY(-8px); } }
+
+.text-anim--pop .ch { animation: pop 0.5s cubic-bezier(.3,1.6,.6,1) both; animation-delay: calc(var(--i) * 35ms); }
+@keyframes pop { from { transform: scale(0.2); opacity: 0; } to { transform: none; opacity: 1; } }
+
+.text-anim--type .ch { animation: type 0.01s linear both; animation-delay: calc(var(--i) * 60ms); }
+@keyframes type { from { opacity: 0; } to { opacity: 1; } }
+
+.text-anim--flare { animation: flare 0.9s ease-out both, flare-glow 1.6s ease-in-out 0.9s infinite alternate; }
+@keyframes flare { from { transform: scale(1.35); opacity: 0; filter: brightness(2.5); } to { transform: none; opacity: 1; filter: none; } }
+@keyframes flare-glow { to { text-shadow: 0 0 26px #ff4a2e, 0 0 50px #ff6a4d; } }
+
+.text-anim--clean { animation: clean 2s ease-out both; }
+@keyframes clean { from { opacity: 0; color: #fff; text-shadow: 0 0 60px #fff, 0 0 120px #fff; } to { opacity: 1; } }
+
+.text-anim--wave .ch { animation: fade-ch 0.4s ease-out both, wave 2.4s ease-in-out infinite; animation-delay: calc(var(--i) * 30ms), calc(var(--i) * 90ms); }
+@keyframes fade-ch { from { opacity: 0; } to { opacity: 1; } }
+@keyframes wave { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+
+.text-anim--bounce .ch { animation: bounce-in 0.7s cubic-bezier(.3,1.5,.5,1) both; animation-delay: calc(var(--i) * 40ms); }
+@keyframes bounce-in { 0% { transform: translateY(-60px); opacity: 0; } 60% { opacity: 1; } 100% { transform: none; opacity: 1; } }
+
+.text-anim--rainbow {
+  background: linear-gradient(90deg, #ff6b6b, #ffd93d, #6bcb77, #4d96ff, #b06bff, #ff6b6b);
+  background-size: 300% 100%;
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  text-shadow: none;
+  animation: rainbow-move 4s linear infinite;
+}
+@keyframes rainbow-move { to { background-position: 300% 0; } }
+
+/* ---------- 状態表示・免責 ---------- */
+.mode-badge {
+  position: absolute; top: 24px; right: 24px;
+  padding: 8px 18px; border-radius: 10px;
+  font-size: 24px; font-weight: 700; color: #1a1a1a; background: rgba(255,224,102,0.92);
+}
+
+.disclaimer {
+  position: absolute; left: 24px; right: 24px; bottom: 24px; margin: 0;
+  font-size: 22px; line-height: 1.45; color: rgba(255,255,255,0.78);
+  text-shadow: 0 1px 3px rgba(0,0,0,0.9);
+  pointer-events: none;
+}
+.disclaimer.pos-top { top: 74px; bottom: auto; }
+
+/* ---------- テストUI（?test=1 のときのみ表示。OBS 本番URLには出さない） ---------- */
+.test-panel {
+  position: fixed; right: 12px; top: 12px; width: 300px; max-height: calc(100% - 24px); overflow: auto;
+  padding: 14px; border-radius: 12px;
+  background: rgba(20,20,28,0.94); color: #eee; font-size: 13px;
+  border: 2px solid #ffe066; z-index: 10;
+}
+.test-panel[hidden] { display: none; }
+.test-panel h2 { margin: 0 0 6px; font-size: 16px; }
+.test-panel h2 small { color: #ffe066; }
+.test-panel__note { margin: 0 0 8px; color: #ffe066; }
+.test-panel__conn { margin-bottom: 8px; color: #aaa; }
+.test-panel__conn.ok { color: #7be495; }
+.test-panel__conn.ng { color: #ff7b7b; }
+.test-panel label { display: block; margin-bottom: 8px; }
+.test-panel select { margin-top: 4px; width: 100%; }
+.test-panel__colors { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 8px; }
+.test-panel button {
+  padding: 8px 6px; border-radius: 8px; border: 1px solid #555; background: #2c2c38; color: #fff;
+  cursor: pointer; font-size: 13px; text-align: left;
+}
+.test-panel button:hover { background: #3a3a4a; }
+.test-panel button .sw { display: inline-block; width: 12px; height: 12px; border-radius: 50%; margin-right: 6px; vertical-align: -1px; }
+.test-panel__wide { width: 100%; text-align: center !important; }
+.test-panel__stats { margin: 8px 0; font-family: monospace; color: #aaa; }
+.test-panel__log { margin: 0; padding-left: 18px; font-family: monospace; font-size: 12px; color: #ccc; }
+.test-panel__log li { margin-bottom: 2px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .aura, .mirror, .lantern__light { animation: none !important; }
+}
