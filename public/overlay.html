@@ -47,6 +47,7 @@
       <canvas id="fx"></canvas>
 
       <section class="card" id="card" aria-live="polite">
+        <div class="card__headline" id="cardHeadline" hidden></div>
         <div class="card__head">
           <span class="card__color" id="cardColor"></span>
           <span class="card__category" id="cardCategory"></span>
@@ -54,6 +55,8 @@
         <p class="card__text" id="cardText"></p>
         <div class="card__source" id="cardSource" hidden></div>
       </section>
+
+      <ul class="ticker" id="ticker" aria-live="polite"></ul>
 
       <div class="idle-text" id="idleText">波動を感じながら、ゆっくりしていってください</div>
 
@@ -66,13 +69,59 @@
 
   <aside class="test-panel" id="testPanel" hidden>
     <h2>テストUI <small>（シミュレーション）</small></h2>
-    <p class="test-panel__note">ここで発生させた演出はテストです。実際のTikTokのイベントではありません。</p>
+    <p class="test-panel__note">ここで発生させたイベントはすべてテストです。実際のTikTokのギフト・コメントではありません。画面とログにも「テスト」「SIMULATION」と表示されます。</p>
     <div class="test-panel__conn" id="conn">接続中…</div>
-    <label>メッセージ分類
-      <select id="testCategory"><option value="">ランダム</option></select>
-    </label>
-    <div class="test-panel__colors" id="testColors"></div>
-    <button type="button" id="testRandom" class="test-panel__wide">ランダムな色でテスト演出</button>
+    <div class="test-panel__queue" id="queueStats">キュー：-</div>
+
+    <details open>
+      <summary>色演出（手動）</summary>
+      <label>メッセージ分類
+        <select id="testCategory"><option value="">ランダム</option></select>
+      </label>
+      <div class="test-panel__colors" id="testColors"></div>
+      <button type="button" id="testRandom" class="test-panel__wide">ランダムな色でテスト演出</button>
+    </details>
+
+    <details open>
+      <summary>ギフト（テスト）</summary>
+      <label>テスト視聴者名 <input id="simName" value="視聴者A" maxlength="30"></label>
+      <div class="test-panel__grid">
+        <button type="button" id="simGiftNormal">通常ギフト ×1</button>
+        <button type="button" id="simGiftSpecial">特別ギフト ×1</button>
+        <button type="button" id="simGiftCombo">連続ギフト ×10<br><small>同一視聴者・150ms間隔</small></button>
+        <button type="button" id="simGiftBurst">同時ギフト ×20<br><small>20人が同時</small></button>
+        <button type="button" id="simGiftFlood">大量ギフト ×100<br><small>上限超過→まとめ表示</small></button>
+        <button type="button" id="simMixed">混在 ×40<br><small>ギフト+コメント</small></button>
+      </div>
+    </details>
+
+    <details open>
+      <summary>コメント（テスト）</summary>
+      <label>入力例
+        <select id="simPreset">
+          <option value="">（自由入力）</option>
+          <option>こんばんは！今日も癒やされます</option>
+          <option>ゴールド</option>
+          <option>青</option>
+          <option>おみくじ</option>
+          <option>&lt;img src=x onerror=alert(1)&gt;</option>
+          <option>https://example.com を見て</option>
+          <option>電話して 090-1234-5678</option>
+          <option>test@example.com に連絡</option>
+          <option>東京都新宿区西新宿2丁目8-1</option>
+          <option>お前バカだろ</option>
+          <option>f u c k</option>
+          <option>きれい&#x200B;ですね&#x202E;</option>
+          <option>わあああああああああああああ</option>
+        </select>
+      </label>
+      <label>コメント本文 <input id="simText" maxlength="500" placeholder="テストコメント"></label>
+      <div class="test-panel__grid">
+        <button type="button" id="simCommentSend">コメント送信</button>
+        <button type="button" id="simCommentFlood">コメント連投 ×30</button>
+      </div>
+    </details>
+
     <div class="test-panel__stats" id="stats"></div>
     <ol class="test-panel__log" id="testLog"></ol>
   </aside>

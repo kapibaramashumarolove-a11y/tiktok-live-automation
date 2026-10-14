@@ -14,6 +14,7 @@ const config = Object.freeze({
   port: toInt(process.env.PORT, 3000, 1, 65535),
   host: process.env.HOST || '127.0.0.1',
   messageHistorySize: toInt(process.env.MESSAGE_HISTORY_SIZE, 10, 0, 29),
+  commandCooldownMs: toInt(process.env.COMMAND_COOLDOWN_SEC, 30, 0, 3600) * 1000,
   requestedMode,
   // 実連携は未実装のため、常にシミュレーションで動作する
   eventMode: 'simulation',

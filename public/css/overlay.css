@@ -48,7 +48,7 @@ body.transparent { background: transparent; }
 body.transparent .bg, body.transparent .moon, body.transparent .path { display: none; }
 
 .moon {
-  position: absolute; top: 300px; right: 60px; width: 100px; height: 100px; border-radius: 50%;
+  position: absolute; top: 262px; right: 26px; width: 84px; height: 84px; border-radius: 50%;
   background: radial-gradient(circle at 40% 40%, #fffbe8, #f1e2a8 60%, #c9b26a);
   box-shadow: 0 0 60px 20px rgba(255, 240, 190, 0.25);
   opacity: 0.85;
@@ -67,10 +67,10 @@ body.transparent .bg, body.transparent .moon, body.transparent .path { display: 
 }
 
 /* ---------- 鳥居・鏡・灯籠 ---------- */
-.torii { position: absolute; left: 140px; top: 420px; width: 800px; height: 760px; filter: drop-shadow(0 10px 30px rgba(0,0,0,0.6)); }
+.torii { position: absolute; left: 140px; top: 330px; width: 800px; height: 760px; filter: drop-shadow(0 10px 30px rgba(0,0,0,0.6)); }
 
 .mirror {
-  position: absolute; left: 400px; top: 740px; width: 280px; height: 280px; border-radius: 50%;
+  position: absolute; left: 400px; top: 650px; width: 280px; height: 280px; border-radius: 50%;
   background: radial-gradient(circle at 40% 35%, #ffffff 0%, var(--c2) 25%, var(--c1) 60%, var(--c3) 100%);
   box-shadow: 0 0 40px 10px var(--glow), inset 0 0 30px rgba(0,0,0,0.35);
   border: 10px solid #caa24c;
@@ -84,7 +84,7 @@ body.transparent .bg, body.transparent .moon, body.transparent .path { display: 
 @keyframes mirror-breathe { 50% { transform: scale(1.035); } }
 
 .lantern {
-  position: absolute; top: 1180px; width: 90px; height: 170px;
+  position: absolute; top: 1090px; width: 90px; height: 170px;
   background: linear-gradient(#3a2a20, #24170f); border-radius: 12px 12px 4px 4px;
 }
 .lantern--l { left: 40px; }
@@ -98,7 +98,7 @@ body.transparent .bg, body.transparent .moon, body.transparent .path { display: 
 @keyframes lantern-flicker { 0%,100% { opacity: 0.85; } 40% { opacity: 1; } 70% { opacity: 0.75; } }
 
 .path {
-  position: absolute; left: 340px; right: 340px; top: 1180px; height: 740px;
+  position: absolute; left: 340px; right: 340px; top: 1090px; height: 830px;
   background: linear-gradient(rgba(120,110,100,0.25), rgba(60,50,45,0.6));
   clip-path: polygon(30% 0, 70% 0, 100% 100%, 0 100%);
 }
@@ -107,7 +107,7 @@ body.transparent .bg, body.transparent .moon, body.transparent .path { display: 
 
 /* ---------- オーラ（色ごとに個別アニメーション） ---------- */
 .aura {
-  position: absolute; left: 140px; top: 480px; width: 800px; height: 800px; border-radius: 50%;
+  position: absolute; left: 140px; top: 390px; width: 800px; height: 800px; border-radius: 50%;
   opacity: 0; transition: opacity 1s ease; pointer-events: none;
 }
 .aura.is-on { opacity: 1; }
@@ -169,7 +169,7 @@ body.transparent .bg, body.transparent .moon, body.transparent .path { display: 
 
 /* ---------- メッセージカード ---------- */
 .card {
-  position: absolute; left: 90px; right: 90px; top: 1230px; min-height: 300px;
+  position: absolute; left: 90px; right: 90px; top: 1100px; min-height: 280px;
   padding: 36px 48px 40px;
   background: linear-gradient(rgba(10,8,20,0.78), rgba(10,8,20,0.62));
   border: 3px solid var(--c1);
@@ -186,17 +186,18 @@ body.transparent .bg, body.transparent .moon, body.transparent .path { display: 
 }
 .card__category { font-size: 30px; color: var(--c2); letter-spacing: 0.08em; }
 .card__text {
-  margin: 0; font-family: var(--font-serif); font-size: 54px; line-height: 1.5; font-weight: 700;
+  margin: 0; font-family: var(--font-serif); font-size: 50px; line-height: 1.5; font-weight: 700;
   color: #fff; text-shadow: 0 0 14px var(--glow);
   word-break: break-word;
 }
+.card__text--long { font-size: 44px; }
 .card__source {
   margin-top: 20px; display: inline-block; padding: 6px 16px; border-radius: 8px;
   font-size: 26px; font-weight: 700; color: #1a1a1a; background: #ffe066;
 }
 
 .idle-text {
-  position: absolute; left: 0; right: 0; top: 1330px; text-align: center;
+  position: absolute; left: 0; right: 0; top: 1240px; text-align: center;
   font-family: var(--font-serif); font-size: 40px; color: rgba(255,255,255,0.8);
   text-shadow: 0 0 12px rgba(0,0,0,0.8);
   transition: opacity 0.6s ease;
@@ -250,6 +251,36 @@ body.transparent .bg, body.transparent .moon, body.transparent .path { display: 
 }
 @keyframes rainbow-move { to { background-position: 300% 0; } }
 
+.card__headline {
+  margin: -6px 0 16px; font-size: 32px; line-height: 1.35; font-weight: 700; color: var(--c2);
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+  word-break: break-all;
+}
+.card__headline.bump { animation: bump 0.35s ease-out; }
+@keyframes bump { 50% { transform: scale(1.06); } }
+
+/* ---------- コメント表示（サニタイズ済みの文字列のみ） ---------- */
+.ticker {
+  position: absolute; left: 60px; right: 60px; bottom: 110px; margin: 0; padding: 0; list-style: none;
+  display: flex; flex-direction: column; gap: 8px; pointer-events: none;
+}
+.ticker li {
+  align-self: flex-start; max-width: 100%;
+  padding: 8px 18px; border-radius: 16px;
+  background: rgba(10,8,20,0.6); border: 1px solid rgba(255,255,255,0.15);
+  font-size: 28px; line-height: 1.35; color: #fff;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  animation: ticker-in 0.35s ease-out both;
+}
+.ticker li.is-out { animation: ticker-out 0.5s ease-in both; }
+.ticker__name { color: var(--c1); font-weight: 700; margin-right: 12px; }
+.ticker__tag {
+  margin-left: 12px; padding: 1px 10px; border-radius: 6px; font-size: 22px; font-weight: 700;
+  color: #1a1a1a; background: #ffe066; vertical-align: 2px;
+}
+@keyframes ticker-in { from { opacity: 0; transform: translateX(-30px); } to { opacity: 1; transform: none; } }
+@keyframes ticker-out { to { opacity: 0; transform: translateY(-10px); } }
+
 /* ---------- 状態表示・免責 ---------- */
 .mode-badge {
   position: absolute; top: 24px; right: 24px;
@@ -267,7 +298,7 @@ body.transparent .bg, body.transparent .moon, body.transparent .path { display: 
 
 /* ---------- テストUI（?test=1 のときのみ表示。OBS 本番URLには出さない） ---------- */
 .test-panel {
-  position: fixed; right: 12px; top: 12px; width: 300px; max-height: calc(100% - 24px); overflow: auto;
+  position: fixed; right: 12px; top: 12px; width: 320px; max-height: calc(100% - 24px); overflow: auto;
   padding: 14px; border-radius: 12px;
   background: rgba(20,20,28,0.94); color: #eee; font-size: 13px;
   border: 2px solid #ffe066; z-index: 10;
@@ -289,6 +320,12 @@ body.transparent .bg, body.transparent .moon, body.transparent .path { display: 
 .test-panel button:hover { background: #3a3a4a; }
 .test-panel button .sw { display: inline-block; width: 12px; height: 12px; border-radius: 50%; margin-right: 6px; vertical-align: -1px; }
 .test-panel__wide { width: 100%; text-align: center !important; }
+.test-panel details { margin: 8px 0; padding: 6px 8px; border: 1px solid #444; border-radius: 8px; }
+.test-panel summary { cursor: pointer; font-weight: 700; margin-bottom: 6px; }
+.test-panel input { width: 100%; margin-top: 4px; padding: 4px 6px; }
+.test-panel__grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.test-panel__grid small { color: #aaa; }
+.test-panel__queue { margin-bottom: 6px; font-family: monospace; font-size: 12px; color: #9fd3ff; white-space: pre-wrap; }
 .test-panel__stats { margin: 8px 0; font-family: monospace; color: #aaa; }
 .test-panel__log { margin: 0; padding-left: 18px; font-family: monospace; font-size: 12px; color: #ccc; }
 .test-panel__log li { margin-bottom: 2px; }

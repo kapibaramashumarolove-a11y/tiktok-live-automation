@@ -163,10 +163,13 @@
 
   function setAmbientColor(col) { ambientColor = col; }
 
-  function spawn(theme) {
+  /** @param {number} [intensity=1] 0〜1。粒子数・波紋数を比例して減らす */
+  function spawn(theme, intensity = 1) {
+    const k = Math.max(0.05, Math.min(1, intensity));
     const p = theme.particle;
     const cols = theme.colors;
-    for (let n = 0; n < p.count; n++) {
+    const pCount = Math.round(p.count * k);
+    for (let n = 0; n < pCount; n++) {
       const q = particles.find((x) => !x.on);
       if (!q) break; // 上限到達時は追加しない
       q.on = true;
@@ -197,7 +200,8 @@
       activeCount++;
     }
     const r = theme.ripple;
-    for (let i = 0; i < r.count; i++) {
+    const rCount = Math.max(1, Math.round(r.count * k));
+    for (let i = 0; i < rCount; i++) {
       const q = ripples.find((x) => !x.on);
       if (!q) break;
       q.on = true; q.style = r.style; q.r = 20; q.width = r.width; q.speed = r.speed;

@@ -8,9 +8,13 @@ const { Server } = require('socket.io');
 const config = require('./config');
 const log = require('./lib/logger');
 const { MessagePicker } = require('./lib/messagePicker');
+const { EffectQueue } = require('./lib/effectQueue');
+const { EventRouter } = require('./events/router');
+const { attachSimulationSource } = require('./sources/simulationSource');
 const messages = require('./data/messages.json');
 
 const picker = new MessagePicker(messages, { historySize: config.messageHistorySize });
+const queue = new EffectQueue();
 
 const app = express();
 app.disable('x-powered-by');
@@ -22,51 +26,36 @@ app.get('/api/status', (_req, res) => {
     realConnection: false,
     colors: picker.colors(),
     categories: messages.categories,
+    queue: queue.stats(),
   });
 });
 
 const server = http.createServer(app);
-const io = new Server(server, { serveClient: true });
+const io = new Server(server, { serveClient: true, maxHttpBufferSize: 16 * 1024 });
 
-let effectSeq = 0;
+const router = new EventRouter({
+  queue,
+  picker,
+  log,
+  emit: (name, payload) => io.emit(name, payload),
+  commandCooldownMs: config.commandCooldownMs,
+});
 
-/**
- * 演出イベントを生成して全クライアントへ送る。
- * source は 'simulation'（テストUI）のみ。実イベント経路は未実装。
- */
-function emitEffect({ color, category, source }) {
-  const message = picker.pick(color, category);
-  const effect = {
-    id: ++effectSeq,
-    type: 'color-effect',
-    color,
-    message,
-    source,
-    simulated: source === 'simulation',
-    at: Date.now(),
-  };
-  io.emit('effect', effect);
-  return effect;
-}
+// キュー状態の通知は間引いて送る（イベント集中時の通信量を抑える）
+let queueTimer = null;
+queue.on('change', () => {
+  if (queueTimer) return;
+  queueTimer = setTimeout(() => {
+    queueTimer = null;
+    io.emit('queue', { ...queue.stats(), router: router.stats, feedDropped: router.feed.dropped });
+  }, 300);
+});
 
 io.on('connection', (socket) => {
   socket.emit('status', { mode: config.eventMode, realConnection: false });
-
-  socket.on('test:effect', (payload, ack) => {
-    const color = payload && payload.color;
-    const category = payload && payload.category;
-    if (typeof color !== 'string' || !picker.hasColor(color)) {
-      if (typeof ack === 'function') ack({ ok: false, error: 'unknown color' });
-      return;
-    }
-    if (category != null && !Object.prototype.hasOwnProperty.call(messages.categories, category)) {
-      if (typeof ack === 'function') ack({ ok: false, error: 'unknown category' });
-      return;
-    }
-    const effect = emitEffect({ color, category: category || undefined, source: 'simulation' });
-    log.simulation(`テスト演出 #${effect.id} color=${color} msg=${effect.message.id}`);
-    if (typeof ack === 'function') ack({ ok: true, id: effect.id });
-  });
+  socket.emit('queue', { ...queue.stats(), router: router.stats, feedDropped: router.feed.dropped });
+  // 現時点の入力経路はテストUI（シミュレーション）のみ
+  attachSimulationSource(socket, router);
 });
 
 if (config.requestedMode !== 'simulation') {
@@ -79,4 +68,4 @@ server.listen(config.port, config.host, () => {
   log.simulation('現在はシミュレーションモードです。TikTok からの実イベントは受信していません。');
 });
 
-module.exports = { app, server, io };
+module.exports = { app, server, io, queue, router };
