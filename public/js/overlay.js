@@ -107,8 +107,10 @@
     renderText($('cardText'), item.message.text, t.text);
 
     const src = $('cardSource');
-    src.hidden = !item.simulated;
-    src.textContent = item.simulated ? 'テスト演出（シミュレーション）' : '';
+    const label = item.simulated ? 'テスト演出（シミュレーション）' : item.origin === 'operator' ? '配信者による演出' : '';
+    src.hidden = !label;
+    src.textContent = label;
+    src.classList.toggle('card__source--operator', item.origin === 'operator');
 
     const card = $('card');
     card.classList.remove('is-on');
@@ -140,6 +142,19 @@
     themeTimer = setTimeout(resetTheme, THEME_HOLD_MS);
   }
 
+  /** 全停止（緊急停止）：演出・カード・コメントをすべて消す（免責注記は残る） */
+  function clearAll() {
+    clearTimeout(endTimer);
+    clearTimeout(themeTimer);
+    currentId = null;
+    currentTheme = null;
+    FX.clear();
+    $('card').classList.remove('is-on');
+    $('ticker').textContent = '';
+    $('idleText').classList.remove('is-hidden');
+    resetTheme();
+  }
+
   /* ---------- コメント表示 ---------- */
   function showComment(c) {
     const ul = $('ticker');
@@ -162,32 +177,23 @@
     }, TICKER_MS);
   }
 
-  /* ---------- サーバー接続 ---------- */
+  /* ---------- サーバー接続（受信専用） ---------- */
   const socket = window.io ? window.io() : null;
   const conn = $('conn');
 
   if (socket) {
-    socket.on('connect', () => { conn.textContent = 'サーバー接続：OK'; conn.className = 'test-panel__conn ok'; });
-    socket.on('disconnect', () => { conn.textContent = 'サーバー切断（再接続待ち）'; conn.className = 'test-panel__conn ng'; });
     socket.on('status', (st) => { $('modeBadge').hidden = st.mode !== 'simulation'; });
     socket.on('play', (item) => {
       play(item);
-      log(`${item.simulated ? '[SIMULATION]' : '[LIVE]'} 再生 #${item.id} ${item.kind} ${THEMES[item.color].name} ${item.durationMs}ms`);
+      log(`[${item.origin === 'operator' ? 'OPERATOR' : item.simulated ? 'SIMULATION' : 'LIVE'}] 再生 #${item.id} ${item.kind} ${THEMES[item.color].name} ${item.durationMs}ms`);
     });
     socket.on('play:update', update);
     socket.on('play:end', (e) => end(e.id));
     socket.on('comment', showComment);
-    socket.on('queue', (q) => {
-      const w = q.waiting;
-      $('queueStats').textContent =
-        `キュー：${q.paused ? '一時停止中' : q.state} 待機 high=${w.high} normal=${w.normal} low=${w.low} 速度x${q.speedFactor}\n` +
-        `受付${q.counters.enqueued} まとめ${q.counters.merged} 集約${q.counters.summarized} 破棄${q.counters.dropped} 再生${q.counters.played}\n` +
-        `非表示コメント${q.router.blockedComments} 名前置換${q.router.blockedNames} クールダウン${q.router.cooldownSkips} 間引き${q.feedDropped}`;
-    });
+    socket.on('stop', () => { clearAll(); log('全停止（緊急停止）を受信：画面を消去'); });
   } else {
     // サーバーなしで開いた場合も「実イベント未接続」であることを表示する
     $('modeBadge').hidden = false;
-    conn.textContent = 'サーバー未接続'; conn.className = 'test-panel__conn ng';
   }
 
   /* ---------- テストUI ---------- */
@@ -200,10 +206,41 @@
     while (ol.children.length > LOG_MAX) ol.lastElementChild.remove();
   }
 
+  /* 操作の送信は管理用の接続（トークン必須）で行う */
+  let adminSocket = null;
+
+  function connectAdmin(token) {
+    if (adminSocket) adminSocket.disconnect();
+    adminSocket = window.io('/admin', { auth: { token }, reconnectionAttempts: 3 });
+    adminSocket.on('connect', () => {
+      conn.textContent = '管理接続：OK（テストイベントを送信できます）'; conn.className = 'test-panel__conn ok';
+      $('authMsg').textContent = '';
+      try { sessionStorage.setItem('hadoToken', token); } catch (e) { /* 保存できなくても動作する */ }
+    });
+    adminSocket.on('connect_error', (e) => {
+      conn.textContent = `管理接続：失敗（${e.message}）`; conn.className = 'test-panel__conn ng';
+      try { sessionStorage.removeItem('hadoToken'); } catch (e2) { /* noop */ }
+    });
+    adminSocket.on('disconnect', () => { conn.textContent = '管理接続：切断'; conn.className = 'test-panel__conn ng'; });
+    adminSocket.on('admin:state', showQueue);
+    adminSocket.on('admin:init', (d) => showQueue(d.state));
+  }
+
+  function showQueue(st) {
+    const q = st.queue;
+    const w = q.waiting;
+    const run = { running: '稼働中', paused: '一時停止中', stopped: '全停止中' }[st.runState];
+    $('queueStats').textContent =
+      `状態：${run} / キュー ${q.state} 待機 high=${w.high} normal=${w.normal} low=${w.low} 速度x${q.speedFactor}\n` +
+      `受付${q.counters.enqueued} まとめ${q.counters.merged} 集約${q.counters.summarized} 破棄${q.counters.dropped} 再生${q.counters.played}\n` +
+      `非表示コメント${st.stats.blockedComments} 名前置換${st.stats.blockedNames} クールダウン${st.stats.cooldownSkips} 間引き${st.stats.feedDropped}`;
+  }
+
   function send(name, payload, onResult) {
-    if (!socket || !socket.connected) { log('サーバー未接続のため送信できません'); return; }
-    socket.emit(name, payload, (res) => {
+    if (!adminSocket || !adminSocket.connected) { log('管理接続がないため送信できません（トークンを入力してください）'); return; }
+    adminSocket.emit(name, payload, (res) => {
       if (!res || !res.ok) { log(`エラー: ${(res && res.error) || 'no response'}`); return; }
+      if (res.ignored) { log(`受付せず: ${res.ignored}`); return; }
       if (onResult) onResult(res);
     });
   }
@@ -225,6 +262,16 @@
 
   function setupTestPanel() {
     $('testPanel').hidden = false;
+    conn.textContent = '管理接続：未接続（トークンを入力）';
+    $('authForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      connectAdmin($('authToken').value.trim());
+      $('authToken').value = '';
+    });
+    try {
+      const saved = sessionStorage.getItem('hadoToken');
+      if (saved) connectAdmin(saved);
+    } catch (e) { /* noop */ }
     const colorsBox = $('testColors');
     Object.entries(THEMES).forEach(([id, t]) => {
       const b = document.createElement('button');

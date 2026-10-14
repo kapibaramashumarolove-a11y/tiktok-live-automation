@@ -145,6 +145,10 @@ class EffectQueue extends EventEmitter {
     if (this.paused || this.state !== 'idle') return;
     const item = this.next();
     if (!item) { this.emitChange(); return; }
+    this.start(item);
+  }
+
+  start(item) {
     const duration = Math.max(this.minDurationMs, Math.round(item.durationMs * this.speedFactor()));
     item.playDurationMs = duration;
     item.startedAt = Date.now();
@@ -170,6 +174,23 @@ class EffectQueue extends EventEmitter {
       this.state = 'idle';
       this.kick();
     }, this.gapMs);
+  }
+
+  /**
+   * 割り込み再生（配信者の手動オーバーライド用）。再生中の演出は打ち切り、待機中の項目はそのまま残す。
+   * 一時停止中でも再生する。終了後は通常どおり（一時停止中なら停止したまま）。
+   */
+  playNow(item) {
+    clearTimeout(this.timer);
+    this.timer = null;
+    const cur = this.state === 'playing' ? this.current : null;
+    this.current = null;
+    this.state = 'idle';
+    if (cur) this.emit('end', cur);
+    const queued = { ...item, id: ++this.seq, count: 1, enqueuedAt: Date.now() };
+    this.counters.enqueued++;
+    this.start(queued);
+    return { status: 'playing', id: queued.id };
   }
 
   /** 新しい演出の開始を止める（再生中の演出は最後まで流す） */

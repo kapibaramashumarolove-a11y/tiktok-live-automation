@@ -6,11 +6,14 @@
  * origin（イベントの出どころ）は呼び出し元モジュールで固定され、受信データの中身からは決まらない。
  *  - createSimulationEvent … テストUI（src/sources/simulationSource.js）専用
  *  - createLiveEvent       … 将来の実連携アダプタ（src/sources/liveSource.js）専用。現時点では未使用
+ *  - createOperatorEvent   … 管理パネルでの配信者の操作（src/sources/adminSource.js）専用。
+ *                            ギフト通知の形式（type=gift）は作れない（偽のギフト通知を防ぐため）
  * 受信データに origin / simulated などの項目が含まれていても無視する。
  */
 
-const ORIGIN = Object.freeze({ SIMULATION: 'simulation', LIVE: 'live' });
-const TYPES = new Set(['gift', 'comment', 'manual']);
+const ORIGIN = Object.freeze({ SIMULATION: 'simulation', LIVE: 'live', OPERATOR: 'operator' });
+const TYPES = new Set(['gift', 'comment', 'manual', 'message']);
+const OPERATOR_TYPES = new Set(['manual', 'message']);
 const GIFT_TIERS = new Set(['normal', 'special']);
 
 let seq = 0;
@@ -42,15 +45,25 @@ function pickData(type, raw) {
     case 'comment':
       return { ...base, text: pickString(d.text, 500) };
     case 'manual':
-      return { color: pickString(d.color, 16), category: pickString(d.category, 16) || null };
+      return { color: pickString(d.color, 16), category: pickString(d.category, 16) || null, interrupt: d.interrupt === true };
+    case 'message':
+      return {
+        text: pickString(d.text, 500),
+        color: pickString(d.color, 16),
+        target: pickString(d.target, 64),
+        replyTo: pickString(d.replyTo, 64),
+        interrupt: d.interrupt === true,
+      };
     default:
       return {};
   }
 }
 
 function createEvent(origin, type, raw) {
-  if (origin !== ORIGIN.SIMULATION && origin !== ORIGIN.LIVE) throw new Error(`invalid origin: ${origin}`);
+  if (!Object.values(ORIGIN).includes(origin)) throw new Error(`invalid origin: ${origin}`);
   if (!TYPES.has(type)) throw new Error(`invalid event type: ${type}`);
+  if (origin === ORIGIN.OPERATOR && !OPERATOR_TYPES.has(type)) throw new Error(`invalid event type for operator: ${type}`);
+  if (origin !== ORIGIN.OPERATOR && type === 'message') throw new Error(`invalid event type for ${origin}: ${type}`);
   const simulated = origin === ORIGIN.SIMULATION;
   const data = pickData(type, raw);
   if (simulated && data.user) {
@@ -59,7 +72,7 @@ function createEvent(origin, type, raw) {
     data.user.testLabel = true;
   }
   return Object.freeze({
-    id: `${simulated ? 'sim' : 'live'}-${++seq}`,
+    id: `${{ simulation: 'sim', live: 'live', operator: 'op' }[origin]}-${++seq}`,
     origin,
     simulated,
     type,
@@ -70,5 +83,6 @@ function createEvent(origin, type, raw) {
 
 const createSimulationEvent = (type, raw) => createEvent(ORIGIN.SIMULATION, type, raw);
 const createLiveEvent = (type, raw) => createEvent(ORIGIN.LIVE, type, raw);
+const createOperatorEvent = (type, raw) => createEvent(ORIGIN.OPERATOR, type, raw);
 
-module.exports = { ORIGIN, createSimulationEvent, createLiveEvent };
+module.exports = { ORIGIN, createSimulationEvent, createLiveEvent, createOperatorEvent };

@@ -11,6 +11,8 @@
 }
 
 * { box-sizing: border-box; }
+/* hidden 属性を display 指定より優先する */
+[hidden] { display: none !important; }
 
 html, body {
   margin: 0;
@@ -196,6 +198,8 @@ body.transparent .bg, body.transparent .moon, body.transparent .path { display: 
   font-size: 26px; font-weight: 700; color: #1a1a1a; background: #ffe066;
 }
 
+.card__source--operator { background: #9fe3ff; }
+
 .idle-text {
   position: absolute; left: 0; right: 0; top: 1240px; text-align: center;
   font-family: var(--font-serif); font-size: 40px; color: rgba(255,255,255,0.8);
@@ -325,6 +329,9 @@ body.transparent .bg, body.transparent .moon, body.transparent .path { display: 
 .test-panel input { width: 100%; margin-top: 4px; padding: 4px 6px; }
 .test-panel__grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
 .test-panel__grid small { color: #aaa; }
+.test-panel__auth { margin-bottom: 8px; }
+.test-panel__auth button { margin-top: 4px; width: 100%; text-align: center; }
+.test-panel__authmsg { color: #ff7b7b; }
 .test-panel__queue { margin-bottom: 6px; font-family: monospace; font-size: 12px; color: #9fd3ff; white-space: pre-wrap; }
 .test-panel__stats { margin: 8px 0; font-family: monospace; color: #aaa; }
 .test-panel__log { margin: 0; padding-left: 18px; font-family: monospace; font-size: 12px; color: #ccc; }

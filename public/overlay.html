@@ -71,6 +71,13 @@
     <h2>テストUI <small>（シミュレーション）</small></h2>
     <p class="test-panel__note">ここで発生させたイベントはすべてテストです。実際のTikTokのギフト・コメントではありません。画面とログにも「テスト」「SIMULATION」と表示されます。</p>
     <div class="test-panel__conn" id="conn">接続中…</div>
+    <form class="test-panel__auth" id="authForm">
+      <label>管理用トークン（サーバー起動時のコンソール、または .env の ADMIN_TOKEN）
+        <input id="authToken" type="password" autocomplete="off" required>
+      </label>
+      <button type="submit">接続</button>
+      <div class="test-panel__authmsg" id="authMsg"></div>
+    </form>
     <div class="test-panel__queue" id="queueStats">キュー：-</div>
 
     <details open>
